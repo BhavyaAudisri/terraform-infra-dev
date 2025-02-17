@@ -58,7 +58,6 @@ module "vpn_sg" {
     vpc_id = data.aws_ssm_parameter.vpc_id.value
     common_tags = var.common_tags
 }
-
 # APP ALB accepting traffic from bastion host
 resource "aws_security_group_rule" "app_alb_bastion" {
   type              = "ingress"
@@ -157,6 +156,15 @@ resource "aws_security_group_rule" "backend_vpn" {
   to_port           = 22
   protocol          = "tcp"
   source_security_group_id = module.vpn_sg.sg_id
+  security_group_id = module.backend_sg.sg_id
+}
+
+resource "aws_security_group_rule" "backend_app_alb" {
+  type              = "ingress"
+  from_port         = 8080
+  to_port           = 8080
+  protocol          = "tcp"
+  source_security_group_id = module.app_alb_sg.sg_id
   security_group_id = module.backend_sg.sg_id
 }
 
