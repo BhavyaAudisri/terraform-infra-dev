@@ -13,6 +13,7 @@ module "alb" {
       Name = "${var.project_name}-${var.environment}-app-alb"
     }
   )
+  enable_deletion_protection = false
 }
 resource "aws_lb_listener" "http" {
   load_balancer_arn = module.alb.arn

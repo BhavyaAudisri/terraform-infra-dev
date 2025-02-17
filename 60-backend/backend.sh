@@ -1,7 +1,8 @@
 #!/bin/bash
 
 dnf install ansible -y
-#ansible push
-# ansible-playbook -i inventory.ini backend.yaml
-#ansible pull
-ansible-pull -i localhost, -u https://github.com/BhavyaAudisri/ansible-roles-tf.git backend.yaml
+# push
+# ansible-playbook -i inventory mysql.yaml
+
+#pull
+ansible-pull  -i localhost, -U https://github.com/BhavyaAudisri/ansible-roles-tf.git backend.yaml -e COMPONENT=backend -e ENVIRONMENT=$1

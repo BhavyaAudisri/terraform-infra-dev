@@ -37,8 +37,9 @@ resource "null_resource" "backend" {
     # Bootstrap script called with private_ip of each node in the clutser
     inline = [
       "chmod +x /tmp/backend.sh",
-      "sudo sh /tmp/backend.sh"
+      "sudo sh /tmp/backend.sh ${var.environment}"
     ]
   }
 
 }
+
