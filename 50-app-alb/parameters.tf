@@ -1,8 +1,8 @@
-resource "aws_ssm_parameter" "app_albn" {
+resource "aws_ssm_parameter" "app_alb" {
   name  = "/${var.project_name}/${var.environment}/app_alb"
   type  = "String"
   value = module.alb.arn
-  #overwrite = true
+  overwrite = true
 }
 
 resource "aws_ssm_parameter" "app_alb_listener_arn" {
