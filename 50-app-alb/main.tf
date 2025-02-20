@@ -28,6 +28,7 @@ resource "aws_lb_listener" "http" {
       message_body = "<h1> hello , I am from backend APP ALB </h1>"
       status_code  = "200"
     }
+   
   }
 }
 resource "aws_route53_record" "app_alb" {

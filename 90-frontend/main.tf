@@ -42,7 +42,7 @@ resource "null_resource" "frontend" {
   }
 
 }
-#stop the frontend instance
+#stop the backend instance
 resource "aws_ec2_instance_state" "frontend" {
   instance_id = aws_instance.frontend.id
   state       = "stopped"
@@ -73,6 +73,7 @@ resource "aws_lb_target_group" "frontend" {
   port     = 80
   protocol = "HTTP"
   vpc_id   = local.vpc_id
+  deregistration_delay = 60
 
   health_check {
     healthy_threshold = 2
@@ -107,10 +108,10 @@ resource "aws_launch_template" "frontend" {
 resource "aws_autoscaling_group" "frontend" {
   name                      = local.resource_name
   max_size                  = 10
-  min_size                  = 1
-  health_check_grace_period = 120
+  min_size                  = 2
+  health_check_grace_period = 180
   health_check_type         = "ELB"
-  desired_capacity          = 1
+  desired_capacity          = 2
   target_group_arns = [aws_lb_target_group.frontend.arn]
   launch_template {
     id      = aws_launch_template.frontend.id
@@ -132,7 +133,7 @@ resource "aws_autoscaling_group" "frontend" {
   }
 
   timeouts {
-    delete = "3m"
+    delete = "10m"
   }
 
   tag {
@@ -147,7 +148,6 @@ resource "aws_autoscaling_group" "frontend" {
     propagate_at_launch = false
   }
 }
-
 resource "aws_autoscaling_policy" "bat" {
   name                   = "${local.resource_name}-frontend"
   policy_type            = "TargetTrackingScaling"
@@ -172,7 +172,7 @@ resource "aws_lb_listener_rule" "frontend" {
 
   condition {
     host_header {
-      values = ["frontend.app-${var.environment}.${var.domain_name}"]
+      values = ["expense-${var.environment}.${var.domain_name}"]
     }
   }
 }

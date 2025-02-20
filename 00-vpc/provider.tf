@@ -9,7 +9,7 @@ terraform {
 
   backend "s3" {
     bucket         = "somi-tf-dev"
-    key            = "dev-vpc-test" # you should have unique keys with in the bucket, same key should not be used in other repos or tf projects
+    key            = "tf-dev-vpc-test" # you should have unique keys with in the bucket, same key should not be used in other repos or tf projects
     region         = "us-east-1"
     dynamodb_table = "somi-tf-dev"
   }
