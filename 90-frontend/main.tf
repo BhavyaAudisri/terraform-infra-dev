@@ -1,19 +1,18 @@
 resource "aws_instance" "frontend" {
-  ami                    = data.aws_ami.joindevops.id
+  ami                    = data.aws_ami.joindevops.id # golden AMI
   vpc_security_group_ids = [data.aws_ssm_parameter.frontend_sg_id.value]
-  instance_type          = var.instance_type
-  subnet_id              = local.public_subnet_id
+  instance_type          = "t3.micro"
+  subnet_id   = local.public_subnet_id
   tags = merge(
     var.common_tags,
     {
-      Name = "${var.project_name}-${var.environment}-frontend"
+        Name = "${var.project_name}-${var.environment}-frontend"
     }
   )
 }
 
-
 resource "null_resource" "frontend" {
-  # Changes to any instance of the cluster requires re-provisioning
+  # Changes to any instance of the instance requires re-provisioning
   triggers = {
     instance_id = aws_instance.frontend.id
   }
@@ -21,40 +20,38 @@ resource "null_resource" "frontend" {
   # Bootstrap script can run on any instance of the cluster
   # So we just choose the first in this case
   connection {
-    host     = aws_instance.frontend.public_ip
-    type     = "ssh"
+    host = aws_instance.frontend.public_ip
+    type = "ssh"
     user     = "ec2-user"
     password = "DevOps321"
-
   }
-  
+
   provisioner "file" {
     source      = "frontend.sh"
     destination = "/tmp/frontend.sh"
   }
 
   provisioner "remote-exec" {
-    # Bootstrap script called with public_ip of each node in the clutser
+    # Bootstrap script called with public_ip of each node in the cluster
     inline = [
       "chmod +x /tmp/frontend.sh",
       "sudo sh /tmp/frontend.sh ${var.environment}"
     ]
   }
-
 }
-#stop the backend instance
+
 resource "aws_ec2_instance_state" "frontend" {
   instance_id = aws_instance.frontend.id
   state       = "stopped"
   depends_on = [null_resource.frontend]
 }
-#taking ami image from frontend
+
 resource "aws_ami_from_instance" "frontend" {
   name               = local.resource_name
   source_instance_id = aws_instance.frontend.id
   depends_on = [aws_ec2_instance_state.frontend]
 }
-# terminate null resource
+
 resource "null_resource" "frontend_delete" {
 
   triggers = {
@@ -81,7 +78,7 @@ resource "aws_lb_target_group" "frontend" {
     timeout = 5
     protocol = "HTTP"
     port = 80
-    path = "/health"
+    path = "/"
     matcher = "200-299"
     interval = 10
   }
@@ -108,10 +105,10 @@ resource "aws_launch_template" "frontend" {
 resource "aws_autoscaling_group" "frontend" {
   name                      = local.resource_name
   max_size                  = 10
-  min_size                  = 2
-  health_check_grace_period = 180
+  min_size                  = 1
+  health_check_grace_period = 180 # 3 minutes for instance to intialise
   health_check_type         = "ELB"
-  desired_capacity          = 2
+  desired_capacity          = 1
   target_group_arns = [aws_lb_target_group.frontend.arn]
   launch_template {
     id      = aws_launch_template.frontend.id
@@ -148,6 +145,7 @@ resource "aws_autoscaling_group" "frontend" {
     propagate_at_launch = false
   }
 }
+
 resource "aws_autoscaling_policy" "bat" {
   name                   = "${local.resource_name}-frontend"
   policy_type            = "TargetTrackingScaling"
