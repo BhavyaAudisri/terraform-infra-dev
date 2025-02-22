@@ -16,6 +16,6 @@ variable "common_tags" {
 variable "zone_id" {
     default = "Z04682941QH8S5QB2E0V1"
 }
-variable "doamin_name" {
+variable "domain_name" {
     default = "somisettibhavya.life"
 }
