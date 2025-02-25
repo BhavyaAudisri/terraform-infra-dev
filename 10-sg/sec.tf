@@ -69,18 +69,6 @@ module "vpn_sg" {
     common_tags = var.common_tags
 }
 
-
-# APP ALB accepting traffic from bastion host
-resource "aws_security_group_rule" "app_alb_bastion" {
-  type              = "ingress"
-  from_port         = 80
-  to_port           = 80
-  protocol          = "tcp"
-  source_security_group_id      = module.bastion_sg.sg_id
-  security_group_id = module.app_alb_sg.sg_id
-}
-
-
 resource "aws_security_group_rule" "bastion_public" {
   type              = "ingress"
   from_port         = 22
@@ -125,15 +113,6 @@ resource "aws_security_group_rule" "vpn_1194" {
   cidr_blocks = ["0.0.0.0/0"]
   security_group_id = module.vpn_sg.sg_id
 }
-# Accepting traffic from vpn to APP-ALB
-resource "aws_security_group_rule" "app_alb_vpn" {
-  type              = "ingress"
-  from_port         = 80
-  to_port           = 80
-  protocol          = "tcp"
-  source_security_group_id = module.vpn_sg.sg_id
-  security_group_id = module.app_alb_sg.sg_id
-}
 
 resource "aws_security_group_rule" "web_alb_https" {
   type              = "ingress"
@@ -143,6 +122,75 @@ resource "aws_security_group_rule" "web_alb_https" {
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = module.web_alb_sg.sg_id
 }
+
+resource "aws_security_group_rule" "frontend_public" {
+  type              = "ingress"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = module.frontend_sg.sg_id
+}
+
+# Accepting traffic from web-alb to frontend
+resource "aws_security_group_rule" "frontend_web_alb" {
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  source_security_group_id = module.web_alb_sg.sg_id
+  security_group_id = module.frontend_sg.sg_id
+}
+
+#Accepting traffic from frontend to app-alb
+resource "aws_security_group_rule" "app_alb_frontend" {
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  source_security_group_id = module.frontend_sg.sg_id
+  security_group_id = module.app_alb_sg.sg_id
+}
+
+resource "aws_security_group_rule" "backend_app_alb" {
+  type              = "ingress"
+  from_port         = 8080
+  to_port           = 8080
+  protocol          = "tcp"
+  source_security_group_id = module.app_alb_sg.sg_id
+  security_group_id = module.backend_sg.sg_id
+}
+
+resource "aws_security_group_rule" "mysql_backend" {
+  type              = "ingress"
+  from_port         = 3306
+  to_port           = 3306
+  protocol          = "tcp"
+  source_security_group_id = module.backend_sg.sg_id
+  security_group_id = module.mysql_sg.sg_id
+}
+
+# APP ALB accepting traffic from bastion host
+resource "aws_security_group_rule" "app_alb_bastion" {
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  source_security_group_id      = module.bastion_sg.sg_id
+  security_group_id = module.app_alb_sg.sg_id
+}
+
+# Accepting traffic from vpn to APP-ALB
+
+resource "aws_security_group_rule" "app_alb_vpn" {
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  source_security_group_id = module.vpn_sg.sg_id
+  security_group_id = module.app_alb_sg.sg_id
+}
+
 # Accepting traffic from bastion to mysql database
 
 resource "aws_security_group_rule" "mysql_bastion" {
@@ -163,14 +211,6 @@ resource "aws_security_group_rule" "mysql_vpn" {
   security_group_id = module.mysql_sg.sg_id
 }
 
-resource "aws_security_group_rule" "mysql_backend" {
-  type              = "ingress"
-  from_port         = 3306
-  to_port           = 3306
-  protocol          = "tcp"
-  source_security_group_id = module.backend_sg.sg_id
-  security_group_id = module.mysql_sg.sg_id
-}
 
 resource "aws_security_group_rule" "backend_vpn" {
   type              = "ingress"
@@ -181,14 +221,6 @@ resource "aws_security_group_rule" "backend_vpn" {
   security_group_id = module.backend_sg.sg_id
 }
 
-resource "aws_security_group_rule" "backend_app_alb" {
-  type              = "ingress"
-  from_port         = 8080
-  to_port           = 8080
-  protocol          = "tcp"
-  source_security_group_id = module.app_alb_sg.sg_id
-  security_group_id = module.backend_sg.sg_id
-}
 
 resource "aws_security_group_rule" "backend_vpn_http" {
   type              = "ingress"
@@ -197,34 +229,4 @@ resource "aws_security_group_rule" "backend_vpn_http" {
   protocol          = "tcp"
   source_security_group_id = module.vpn_sg.sg_id
   security_group_id = module.backend_sg.sg_id
-}
-
-#Accepting traffic from frontend to app-alb
-resource "aws_security_group_rule" "app_alb_frontend" {
-  type              = "ingress"
-  from_port         = 80
-  to_port           = 80
-  protocol          = "tcp"
-  source_security_group_id = module.frontend_sg.sg_id
-  security_group_id = module.app_alb_sg.sg_id
-}
-
-# Accepting traffic from web-alb to frontend
-resource "aws_security_group_rule" "frontend_web_alb" {
-  type              = "ingress"
-  from_port         = 80
-  to_port           = 80
-  protocol          = "tcp"
-  source_security_group_id = module.web_alb_sg.sg_id
-  security_group_id = module.frontend_sg.sg_id
-}
-
-
-resource "aws_security_group_rule" "frontend_public" {
-  type              = "ingress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = module.frontend_sg.sg_id
 }
