@@ -15,6 +15,7 @@ module "db" {
   vpc_security_group_ids = [local.mysql_sg_id]
   create_db_subnet_group = false
   db_subnet_group_name = local.database_subnet_group_name
+  #db_subnet_group_name = aws_db_subnet_group.expense.name
 
   # DB parameter group
   family = "mysql8.0"
@@ -71,3 +72,13 @@ resource "aws_route53_record" "dev"{
   allow_overwrite = true
 }
 
+/* resource "aws_db_subnet_group" "expense" {
+  name = "${var.project_name}-${var.environment}"
+  subnet_ids = module.vpc.database_subnet_ids
+  tags = merge (
+    var.common_tags,
+    {
+      Name = "${var.project_name}-${var.environment}"
+    }
+  )
+} */
