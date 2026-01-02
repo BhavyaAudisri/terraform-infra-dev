@@ -1,9 +1,12 @@
-resource "aws_key_pair" "openvpnas" {
+/*resource "aws_key_pair" "openvpnas" {
   key_name   = "openvpnas"
   #public_key = file("//home//bhavya//devops//terraform-infra-dev//openvpnas.pub")
   public_key = file("~/devops/terraform-infra-dev/30-vpn/openvpnas.pub")
+}*/
+resource "aws_key_pair" "openvpnas" {
+  key_name   = "openvpnas"
+  public_key = file("${path.module}/openvpnas.pub")
 }
-
 resource "aws_instance" "vpn-practice" {
   ami                    = data.aws_ami.openvpn.id
   key_name = aws_key_pair.openvpnas.key_name
