@@ -14,9 +14,9 @@ variable "common_tags" {
   }
 }
 variable "zone_id" {
-    default = "Z04682941QH8S5QB2E0V1"
+    default = "Z01955133DJD2Z4Y00KCI"
 }
 
 variable "domain_name" {
-    default = "somisettibhavya.life"
+    default = "somisettibhavya.online"
 }
